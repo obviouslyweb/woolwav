@@ -1,8 +1,6 @@
-## Overview
+## TERMINAL_19 - *Discord.py Music & Audio Streaming Bot*
 
-**Project Title**: TERMINAL_19
-
-**Project Description**: A music bot created using Discord.py that allows users to upload their own audio tracks to listen to them in voice channels, with support for a variety of audio filetypes, playlist features, looping tracks, and (theoretically) support for an infinite amount of tracks to be played.
+TERMINAL_19 is an audio streaming bot created using Discord.py that allows users to upload their own audio tracks to listen to them in voice channels, with support for a variety of audio filetypes, playlist features, looping tracks, and (theoretically) support for an infinite amount of tracks to be played.
 
 **Project Goals**: To understand how a pre-existing platform API (like Discord) functions and create a custom application that can interface with it to provide extended and customized functionality, as well as understand community-created libraries (Discord.py & ffmpeg) to achieve said functionality.
 
