@@ -3,7 +3,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from checks import check_allowed_roles
+from checks import check_allowed_roles, interaction_has_allowed_role
 
 class CommandsCog(commands.Cog):
     def __init__(self, bot):
@@ -21,12 +21,18 @@ class CommandsCog(commands.Cog):
     @app_commands.command(name="info", description="Display bot version and details.")
     async def info(self, interaction: discord.Interaction) -> None:
         print("Info command sent. Attempting to send response...")
-        await interaction.response.send_message("`CURRENTLY RUNNING TERMINAL_19 BOT VERSION 2.0.0.`")
+        await interaction.response.send_message("Currently running TERMINAL_19. Specific details coming soon.")
 
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def help(self, ctx):
-        await ctx.send("```"
+    @app_commands.command(name="help", description="Display all commands.")
+    async def help(self, interaction: discord.Interaction) -> None:
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message(
+                "You don't have permission to use this command.",
+                ephemeral=True,
+            )
+            return
+        await interaction.response.send_message(
+            "```"
             "TERMINAL_19 COMMANDS\n\n"
             "[ CORE COMMANDS ]\n"
             "!help - Display all commands\n"
@@ -35,7 +41,7 @@ class CommandsCog(commands.Cog):
             "[ AUDIO COMMANDS ]\n"
             "!leave - Have the bot leave the voice channel it's in.\n"
             "!play (filename.ext) - Have the bot join the VC and play audio from the bot's sounds list. Filename & extension required.\n"
-            "!audio {subfolder} - Display the bot's sound list in full. Subfolder parameter is optional, allows you to view audio files in a subfolder.\n"
+            "!sounds {subfolder} - Display the bot's sound list. Subfolder parameter is optional.\n"
             "!skip - Skips to the next song in the queue.\n"
             "!queue - Show the currently playing track and queued songs, as well as looping status.\n"
             "!loop - Toggles looping, where the currently playing song will replay indefinitely.\n"
@@ -46,14 +52,20 @@ class CommandsCog(commands.Cog):
             "```"
         )
 
-    @commands.command(name="leave", help="Leave the current voice channel.")
-    @commands.check(check_allowed_roles)
-    async def leave(self, ctx):
-        if ctx.voice_client:
-            await ctx.voice_client.disconnect()
-            await ctx.send("`DISCONNECTED FROM VOICE CHANNEL.`")
+    @app_commands.command(name="leave", description="Leave the current voice channel.")
+    async def leave(self, interaction: discord.Interaction) -> None:
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message(
+                "You don't have permission to use this command.",
+                ephemeral=True,
+            )
+            return
+        voice_client = interaction.guild.voice_client if interaction.guild else None
+        if voice_client:
+            await voice_client.disconnect()
+            await interaction.response.send_message("`DISCONNECTED FROM VOICE CHANNEL.`")
         else:
-            await ctx.send("`NOT CURRENTLY IN A VOICE CHANNEL.`")
+            await interaction.response.send_message("`NOT CURRENTLY IN A VOICE CHANNEL.`")
 
 async def setup(bot):
     await bot.add_cog(CommandsCog(bot))
