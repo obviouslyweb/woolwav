@@ -1,4 +1,4 @@
-!(TERMINAL_19 icon)[icons/t_19_icon.webp]
+![TERMINAL_19 icon](icons/t_19_icon.webp)
 
 ## TERMINAL_19 - *Discord.py Audio Bot*
 
