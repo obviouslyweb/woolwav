@@ -36,11 +36,11 @@ class CommandsCog(commands.Cog):
             f"**Currently loaded audio tracks:** {tracks}"
         )
         embed = discord.Embed(
-            title="TERMINAL_19 Information",
+            title="Woolwav Information",
             description=description,
             color=0x5865F2,
         )
-        embed.set_footer(text="Created by @thewebcon on Discord")
+        embed.set_footer(text="Created by @thewebcon using Discord.py")
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(name="help", description="Display all commands.")
@@ -52,7 +52,7 @@ class CommandsCog(commands.Cog):
             )
             return
         embed = discord.Embed(
-            title="TERMINAL_19 Commands",
+            title="Woolwav Commands",
             description=(
                 "**Core**\n"
                 "/help — Display this message\n"
@@ -71,7 +71,7 @@ class CommandsCog(commands.Cog):
             ),
             color=0x5865F2,
         )
-        embed.set_footer(text=f"TERMINAL_19 v{getattr(self.bot, 'version', '?')}")
+        embed.set_footer(text=f"Woolwav v{getattr(self.bot, 'version', '?')}")
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="leave", description="Leave the current voice channel.")
