@@ -1,5 +1,6 @@
 .env
 __pycache__/
 discord.log
+logs/
 /audio/*
 !/audio/guide.txt
