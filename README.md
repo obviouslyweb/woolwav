@@ -77,6 +77,8 @@ I found these websites useful in developing this software:
 
 ## Legal Disclaimers
 
-This project is provided “as is” without warranty of any kind. By using this code, you agree that you are solely responsible for compliance with Discord’s Terms of Service and all applicable laws. I accept no liability for misuse or damages.
+*This project is provided “as is” without warranty of any kind. By using this code, you agree that you are solely responsible for compliance with Discord’s Terms of Service and all applicable laws. I accept no liability for misuse or damages.*
 
-This project makes use of several third-party libraries, each of which is subject to its own license. Key dependencies include [discord.py](https://pypi.org/project/discord.py/) for Discord bot functionality, [python-dotenv](https://pypi.org/project/python-dotenv/) for environment variable management, and [ffmpeg](https://ffmpeg.org/) for audio processing. Please consult the respective links for details on each library’s license terms and ensure compliance when using or modifying this project.
+*Woolwav Logo © obviouslyweb 2026. You are permitted to use the logo for usage on your own instance of the bot, if desired.*
+
+*This project makes use of several third-party libraries, each of which is subject to its own license. Key dependencies include [discord.py](https://pypi.org/project/discord.py/) for Discord bot functionality, [python-dotenv](https://pypi.org/project/python-dotenv/) for environment variable management, and [ffmpeg](https://ffmpeg.org/) for audio processing. Please consult the respective links for details on each library’s license terms and ensure compliance when using or modifying this project.*
