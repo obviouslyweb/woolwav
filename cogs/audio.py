@@ -1,7 +1,10 @@
+"""Audio commands cog for core audio playback features."""
+
 import discord
 import os
 import asyncio
 from discord.ext import commands
+from checks import check_allowed_roles
 
 class AudioCog(commands.Cog):
     def __init__(self, bot):
@@ -74,7 +77,8 @@ class AudioCog(commands.Cog):
         self.play_next(ctx, guild_id)
 
     @commands.command()
-    async def play(self, ctx, *, filename: str): # Adds song to queue and starts playing
+    @commands.check(check_allowed_roles)
+    async def play(self, ctx, *, filename: str):
         """Queue up audio from the audio folder if it's a valid audio file."""
         guild_id = ctx.guild.id
         print(f"[DEBUG] Play command received with filename: {filename!r}")
@@ -83,25 +87,39 @@ class AudioCog(commands.Cog):
         valid_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
         if not filename.lower().endswith(valid_extensions):
             await ctx.send(f"`'{filename}' IS NOT A SUPPORTED AUDIO FILE.`")
+            print(f"[DEBUG] Could not play {filename!r}; it's unsupported.")
             return
 
         if not os.path.exists(file_path):
             await ctx.send(f"`FILE '{filename}' DOES NOT EXIST.`")
+            print(f"[DEBUG] Could not play {filename!r}; it does not exist.")
             return
 
         if not ctx.voice_client:
-            await ctx.send("`[T_18] TERMINAL MUST BE IN A VOICE CHANNEL TO PLAY AUDIO.`")
-            return
+            if ctx.author.voice and ctx.author.voice.channel:
+                print(f"[DEBUG] Beginning connection attempt...")
+                await ctx.author.voice.channel.connect()
+                await ctx.send(f"`JOINED {ctx.author.voice.channel.name}.`")
+                print(f"[DEBUG] Connection attempt passed.")
+            else:
+                print(f"[DEBUG] Player not in voice channel; cancelling request.")
+                await ctx.send("`YOU MUST BE IN A VOICE CHANNEL TO PLAY AUDIO.`")
+                return
 
+        print(f"[DEBUG] Queuing song...")
         queue = self.get_queue(guild_id)
         await queue.put(filename)
         self.queue_cache[guild_id].append(filename)
         await ctx.send(f"`QUEUED: '{filename}'.`")
+        print(f"[DEBUG] Song queued.")
 
         if not ctx.voice_client.is_playing():
+            print(f"[DEBUG] Nothing playing; starting newly queued song.")
             self.play_next(ctx, guild_id)
 
+
     @commands.command()
+    @commands.check(check_allowed_roles)
     async def skip(self, ctx):
         """Skip the currently playing track."""
         guild_id = ctx.guild.id
@@ -125,6 +143,7 @@ class AudioCog(commands.Cog):
 
 
     @commands.command()
+    @commands.check(check_allowed_roles)
     async def stop(self, ctx):
         """Stop playing current audio and clear the queue."""
         guild_id = ctx.guild.id
@@ -140,6 +159,7 @@ class AudioCog(commands.Cog):
             await ctx.send("`NOT IN A VOICE CHANNEL.`")
     
     @commands.command()
+    @commands.check(check_allowed_roles)
     async def clearqueue(self, ctx):
         """Clear the rest of the song queue."""
         guild_id = ctx.guild.id
@@ -156,6 +176,7 @@ class AudioCog(commands.Cog):
             await ctx.send("`NOT IN A VOICE CHANNEL.`")
 
     @commands.command()
+    @commands.check(check_allowed_roles)
     async def loop(self, ctx):
         """Disable or enable track looping."""
         if self.looping.get(ctx.guild.id, False):
@@ -166,6 +187,7 @@ class AudioCog(commands.Cog):
             await ctx.send("`LOOPING HAS BEEN ENABLED.`")
 
     @commands.command()
+    @commands.check(check_allowed_roles)
     async def pause(self, ctx):
         """Pause the currently playing track."""
         if ctx.voice_client and ctx.voice_client.is_playing():
@@ -175,6 +197,7 @@ class AudioCog(commands.Cog):
             await ctx.send("`NO AUDIO TO PAUSE.`")
 
     @commands.command()
+    @commands.check(check_allowed_roles)
     async def unpause(self, ctx):
         """Resume playing the currently paused track."""
         if ctx.voice_client and ctx.voice_client.is_paused():
@@ -213,32 +236,58 @@ class AudioCog(commands.Cog):
         await ctx.send(message)
 
     @commands.command()
-    async def sounds(self, ctx):
-        """Displays all currently available tracks the bot can play."""
+    @commands.check(check_allowed_roles)
+    async def audio(self, ctx, opt_dir=None):
+        """Displays available tracks in the current folder; use !audio (folder) to view a subfolder."""
         try:
-            files = os.listdir(self.audio_folder)
-            audio_files = [f for f in files if f.lower().endswith(('.mp3', '.wav', '.ogg', '.flac', '.m4a'))]
+            search_folder = os.path.join(self.audio_folder, opt_dir) if opt_dir else self.audio_folder
+            audio_folder_real = os.path.realpath(self.audio_folder)
+            search_folder_real = os.path.realpath(search_folder)
 
-            if not audio_files:
-                await ctx.send("`NO AUDIO FILES FOUND IN THE AUDIO FOLDER.`")
+            if not os.path.isdir(search_folder):
+                await ctx.send("`FOLDER NOT FOUND.`")
+                return
+            if not search_folder_real.startswith(audio_folder_real):
+                await ctx.send("`INVALID FOLDER PATH.`")
+                return
+
+            valid_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
+            folders = []
+            files = []
+            with os.scandir(search_folder) as entries:
+                for entry in entries:
+                    path = f"{opt_dir}/{entry.name}" if opt_dir else entry.name
+                    if entry.is_dir():
+                        folders.append(path)
+                    elif entry.is_file() and entry.name.lower().endswith(valid_extensions):
+                        files.append(path)
+
+            folders.sort()
+            files.sort()
+            folder_entries = [f"📁 **{path}**" for path in folders]
+            file_entries = [f"`{path}`" for path in files]
+            all_entries = folder_entries + file_entries
+
+            if not all_entries:
+                await ctx.send("`NO AUDIO FILES OR SUBFOLDERS IN THIS FOLDER.`")
                 return
 
             page_size = 10
-            pages = [audio_files[i:i+page_size] for i in range(0, len(audio_files), page_size)]
+            pages = [all_entries[i:i+page_size] for i in range(0, len(all_entries), page_size)]
             total_pages = len(pages)
             current_page = 0
 
-            def get_page_content(page):
-                content = f"`AVAILABLE AUDIO (PAGE {page+1}/{total_pages}):`\n"
-                for i, filename in enumerate(pages[page], start=1 + page * page_size):
-                    content += f"`{i}. {filename}`\n"
-                content += "`TO PLAY AUDIO, TYPE '!play (filename with extension)'.`\n"
-                if total_pages > 1:
-                    content += "`TO VIEW OTHER AUDIO FILES IN THE FOLDER, USE ARROW REACTIONS.`"
-                return content
+            def get_page_embed(page):
+                lines = [f"{1 + page * page_size + i}. {name}" for i, name in enumerate(pages[page])]
+                embed = discord.Embed(
+                    title=f"Available audio *(page {page+1}/{total_pages})*",
+                    description="\n".join(lines),
+                    color=0x5865F2,
+                )
+                embed.set_footer(text="Use !audio (folder) to view a folder • !play (filename) to play • Arrow reactions to change pages" if total_pages > 1 else "Use !audio (folder) to view a folder • !play (filename) to play")
+                return embed
 
-
-            message = await ctx.send(get_page_content(current_page))
+            message = await ctx.send(embed=get_page_embed(current_page))
 
             if total_pages == 1:
                 return
@@ -258,11 +307,11 @@ class AudioCog(commands.Cog):
                     if str(reaction.emoji) == "➡️":
                         if current_page < total_pages - 1:
                             current_page += 1
-                            await message.edit(content=get_page_content(current_page))
+                            await message.edit(embed=get_page_embed(current_page))
                     elif str(reaction.emoji) == "⬅️":
                         if current_page > 0:
                             current_page -= 1
-                            await message.edit(content=get_page_content(current_page))
+                            await message.edit(embed=get_page_embed(current_page))
                         
                     await message.remove_reaction(reaction, user)
                     
@@ -272,7 +321,7 @@ class AudioCog(commands.Cog):
 
         except Exception as e:
             await ctx.send(f"`ERROR READING AUDIO FOLDER.`")
-            print(f"[ERROR] Error reading audio folder in sounds command: {e}")
+            print(f"[ERROR] Error reading audio folder in audio command: {e}")
                 
 async def setup(bot):
     await bot.add_cog(AudioCog(bot))

@@ -1,3 +1,5 @@
+"""Event cog for detecting when users send an incorrect play command."""
+
 import discord
 from discord.ext import commands
 
