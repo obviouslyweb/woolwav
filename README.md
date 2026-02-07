@@ -4,7 +4,7 @@
 
 TERMINAL_19 is an audio streaming bot created using Discord.py that allows users to upload their own audio tracks to listen to them in voice channels, with support for a variety of audio filetypes, playlist features, looping tracks, and (theoretically) support for an infinite amount of tracks to be played.
 
-### Features
+## Features
 - Play audio files from the bot's `audio` folder, with `.mp3`, `.wav`, `.ogg`, `.m4a`, and `.flac` supported. Add new files to the folder to make them available for playback without the need to restart.
 - Queue audio files in order and loop tracks if desired. 
 - Pausing mid-playback, stopping, and skipping songs entirely.
