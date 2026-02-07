@@ -11,15 +11,17 @@ class CommandsCog(commands.Cog):
         print("Cog 'commands' loaded.")
         self.__cog_name__ = "Core"
 
+    # --------- TEST COMMAND, WILL BE REMOVED LATER ---------
     @app_commands.command(name="echo", description="Echoes a message.")
     @app_commands.describe(message="The message to echo.")
     async def echo(self, interaction: discord.Interaction, message: str) -> None:
         await interaction.response.send_message(message)
+    # --------- TEST COMMAND, WILL BE REMOVED LATER ---------
 
-    @commands.command(name="info", help="Display bot version and details.")
-    async def info(self, ctx):
+    @app_commands.command(name="info", description="Display bot version and details.")
+    async def info(self, interaction: discord.Interaction) -> None:
         print("Info command sent. Attempting to send response...")
-        await ctx.send("`CURRENTLY RUNNING TERMINAL_19 BOT VERSION 1.0.0.`")
+        await interaction.response.send_message("`CURRENTLY RUNNING TERMINAL_19 BOT VERSION 2.0.0.`")
 
     @commands.command()
     @commands.check(check_allowed_roles)
