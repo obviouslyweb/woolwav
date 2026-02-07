@@ -1,3 +1,5 @@
+!(TERMINAL_19 icon)[icons/t_19_icon.webp]
+
 ## TERMINAL_19 - *Discord.py Music & Audio Streaming Bot*
 
 TERMINAL_19 is an audio streaming bot created using Discord.py that allows users to upload their own audio tracks to listen to them in voice channels, with support for a variety of audio filetypes, playlist features, looping tracks, and (theoretically) support for an infinite amount of tracks to be played.
