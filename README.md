@@ -8,7 +8,7 @@ TERMINAL_19 is an audio streaming bot created using Discord.py that allows users
 - Play audio files from the bot's `audio` folder, with `.mp3`, `.wav`, `.ogg`, `.m4a`, and `.flac` supported. Add new files to the folder to make them available for playback without the need to restart.
 - Queue audio files in order and loop tracks if desired. 
 - Pausing mid-playback, stopping, and skipping songs entirely.
-- See a list of available files to play with `!audio`.
+- See a list of available files to play with `/audio`.
 - Optionally restrict commands to users with specified Discord roles through `.env`.
 - Logs important events to a file in the `logs` directory for debugging and monitoring.
 - Self-hostable on your own Discord bot account, allowing for the ability to add or edit features as you see fit.
@@ -26,7 +26,7 @@ TERMINAL_19 is an audio streaming bot created using Discord.py that allows users
 5. In the main `terminal_19` folder, create a new file called `.env`. This will contain important details that our bot needs to run. Type `DISCORD_TOKEN=` on one line. Back in the Discord Developer Portal *Bot* page, click "Reset Token", then paste your bot token after the `=`. This is necessary for the bot to be able to interface with Discord, so ensure that it's properly pasted. Save the file when done.
 > [!WARNING]
 > **Do NOT share your bot token or .env file with anyone!** If it's stolen, others can log in as this bot and do whatever they want with it under your Developer account.
-6. If you only want certain users to be able to use the bot, add `ALLOWED_ROLES=` on another line in `.env` with comma-separated Discord role names (e.g. `ALLOWED_ROLES=Admin,Moderator,Volunteer`). Only users with one of these roles can use interface commands like `!help`, `!play`, `!leave`. If you omit `ALLOWED_ROLES` or leave it empty, any user will be able to use all bot commands. Save the file when done.
+6. If you only want certain users to be able to use the bot, add `ALLOWED_ROLES=` on another line in `.env` with comma-separated Discord role names (e.g. `ALLOWED_ROLES=Admin,Moderator,Volunteer`). Only users with one of these roles can use interface commands like `!help`, `!play`, `!leave`. If you omit `ALLOWED_ROLES` or leave it empty, any user will be able to use all commands. Save the file when done.
 7. Install the required dependencies specified in `requirements.txt`. You can do this easily by opening Command Prompt, Terminal, or equivalent program on your device, navigate to the `terminal_19` folder using `cd path/to/terminal_19`, and run `pip install -r requirements.txt` to install all required Python libraries.
 8. Return to your application on the Discord Developer Portal and go to the OAuth2 tab. Scroll down to *OAuth2 URL Generator*. This is where you'll create the invite link that you will use to invite the bot into your server. Toggle "bot", "applications.commands", and then under Bot Permissions, "View Channels", "Send Messages", "Send Messages in Threads", "Manage Messages", "Read Message History", "Add Reactions", "Connect", "Speak", and "Use Voice Activity". Then, under Integration Type, choose "Guild Install". Copy the Generated URL and store it so you can use it to reinvite the bot going forward.
 9. Open the link with your Discord account, and select the server(s) you want to add it to. Once added, it will appear offline; this is because we've yet to turn the bot on.
@@ -35,7 +35,7 @@ TERMINAL_19 is an audio streaming bot created using Discord.py that allows users
 
 1. Using Command Prompt, Terminal, or an equivalent program, navigate to the `terminal_19` folder using `cd your_path_to/terminal_19`.
 2. Type `python main.py` to turn the bot on. After a few seconds, the bot should load and display a message, `Logged in as (bot name)#1234 (ID: ####)`. Once you see this message, the bot will start accepting commands.
-3. In Discord, use !help on any channel the bot is in to see the available commands.
+3. In Discord, type `/help` in any channel the bot can access to see the available slash commands.
 4. To turn off the bot, use `CTRL + C` on the terminal window you used to run the bot. This will terminate the bot entirely. If using Command Prompt or Powershell, closing the window will also terminate the bot.
 
 ## Adding audio tracks
@@ -45,7 +45,7 @@ Find a compatible audio file (`.mp3`, `.wav`, `.ogg`, `.m4a`, or `.flac`) that y
 In the `audio` folder of the bot, place your files there. The bot will now be able to find and play audio from the folder. You can even add and remove tracks from there while the bot is still running, although removing a track while the bot is playing it may cause critical errors.
 
 > [!TIP]
-> You can also place additional subfolders in the `audio` folder. The bot will be able to play audio tracks from these, and you can filter the `!audio` search by adding the folder name afterwards (e.g. `!audio my_music` for `audio/my_music`).
+> You can also place additional subfolders in the `audio` folder. The bot will be able to play audio tracks from these. Use `/audio` to list the root folder, or `/audio` with the subfolder option (e.g. `my_music` or `my_music/jingles`) to browse inside a folder.
 
 ## Miscellaneous Information
 
