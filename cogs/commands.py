@@ -1,6 +1,8 @@
 """Basic commands cog for info, help, leave, etc."""
 
 import discord
+import os
+import time
 from discord import app_commands
 from discord.ext import commands
 from checks import check_allowed_roles, interaction_has_allowed_role
@@ -13,13 +15,33 @@ class CommandsCog(commands.Cog):
 
     @app_commands.command(name="info", description="Display bot version and details.")
     async def info(self, interaction: discord.Interaction) -> None:
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message(
+                "You don't have permission to use this command.",
+                ephemeral=True,
+            )
+            return
+        version = getattr(self.bot, "version", "?")
+        start = getattr(self.bot, "start_time", None)
+        uptime_secs = int(time.time() - start) if start else 0
+        tracks = 0
+        audio_cog = self.bot.get_cog("Audio")
+        if audio_cog and getattr(audio_cog, "audio_folder", None):
+            valid = (".mp3", ".wav", ".ogg", ".flac", ".m4a")
+            for _root, _dirs, files in os.walk(audio_cog.audio_folder):
+                tracks += sum(1 for f in files if f.lower().endswith(valid))
+        description = (
+            f"**Version:** {version}\n"
+            f"**Uptime:** {uptime_secs} seconds\n"
+            f"**Currently loaded audio tracks:** {tracks}"
+        )
         embed = discord.Embed(
-            title="TERMINAL_19",
-            description="Currently running TERMINAL_19. Specific details coming soon.",
+            title="TERMINAL_19 Information",
+            description=description,
             color=0x5865F2,
         )
-        embed.set_footer(text="Slash commands • Use /help for the full command list")
-        await interaction.response.send_message(embed=embed)
+        embed.set_footer(text="Created by @thewebcon on Discord")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(name="help", description="Display all commands.")
     async def help(self, interaction: discord.Interaction) -> None:
@@ -49,7 +71,7 @@ class CommandsCog(commands.Cog):
             ),
             color=0x5865F2,
         )
-        embed.set_footer(text="Use slash commands with / in the chat")
+        embed.set_footer(text=f"TERMINAL_19 v{getattr(self.bot, 'version', '?')}")
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="leave", description="Leave the current voice channel.")

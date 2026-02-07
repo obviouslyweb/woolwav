@@ -6,10 +6,15 @@ from discord.ext import commands
 import logging
 from dotenv import load_dotenv
 import os
+import time
+
+# Bot version number
+VERSION = "2.1.0"
 
 # Print Discord.py version and file load location for debug
 print("Discord.py Version:", discord.__version__)
 print("Loaded from:", discord.__file__)
+print(f"TERMINAL_19 Version: {VERSION}")
 
 # Load .env file, import token and allowed roles (if any)
 load_dotenv()
@@ -38,10 +43,13 @@ def _no_prefix(_bot, _message):
 bot = commands.Bot(command_prefix=_no_prefix, intents=intents, help_command=None)
 tree = bot.tree
 bot.allowed_roles = bot_allowed_roles
+bot.version = VERSION
 
 # On ready event
 @bot.event
 async def on_ready():
+    if not getattr(bot, "start_time", None):
+        bot.start_time = time.time()
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
 
 # Load cogs and sync slash commands

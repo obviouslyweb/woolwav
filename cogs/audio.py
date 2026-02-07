@@ -302,7 +302,7 @@ class AudioCog(commands.Cog):
 
             folders.sort()
             files.sort()
-            folder_entries = [f"📁 **{path}** (folder)" for path in folders]
+            folder_entries = [f"📁 **{path}**" for path in folders]
             file_entries = [f"`{path}`" for path in files]
             all_entries = folder_entries + file_entries
 
@@ -322,7 +322,7 @@ class AudioCog(commands.Cog):
                     description="\n".join(lines),
                     color=0x5865F2,
                 )
-                footer = "Use /audio (folder) to view a folder • /play (filename) to play"
+                footer = "Use /audio (folder) to view a folder, /play (filename) to play"
                 if total_pages > 1:
                     footer += " • Arrow reactions to change pages"
                 embed.set_footer(text=footer)
