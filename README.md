@@ -15,8 +15,8 @@ TERMINAL_19 is an audio streaming bot created using Discord.py that allows users
 
 ## Setting up TERMINAL_19
 
-### ⚠️ **IMPORTANT - READ BEFORE USE**
-TERMINAL_19 is meant to be a private audio bot that you can load tracks into and play audio with in private invite-only Discord servers. Therefore, these steps encompass the process of creating your own version of the bot from scratch. **You must host the bot yourself;** there is no invite link to a version of the bot that is publicly hosted, as I don't want to be liable for whatever you do with this bot. Proceeding to use the code I've provided here for this application means that you agree to follow Discord's Terms of Service and that I am NOT LIABLE for anything that happens as a result of this application.
+> [!IMPORTANT]
+> TERMINAL_19 is a private audio bot designed for invite-only Discord servers. These steps explain how to create and host your own instance of the bot from scratch. **You must host it yourself**; there is no public invite link, and I am not liable for how the bot is used. By using this code, you agree to comply with Discord’s Terms of Service and accept full responsibility for anything resulting from its use. For more information regarding usage, please see the **Legal Disclaimers** section below.
 
 ### Setup instructions
 1. Download [ffmpeg](https://ffmpeg.org/download.html) and add it to your PATH. You can download pre-compiled versions from other users or compile it yourself (although doing so is a complicated process).
@@ -24,7 +24,8 @@ TERMINAL_19 is meant to be a private audio bot that you can load tracks into and
 3. Download the contents of this repository (`terminal_19`) to your computer and store in a safe location (optimally somewhere quick and easy to access).
 4. Log into the [Discord Developer Portal](https://discord.com/developers/applications) using your Discord account. Create a new application and give it a name. On the *Bot* page, toggle "Server Members Intent" and "Message Content Intent"; these are required for the bot to be able to properly process user information and messages to read messages.
 5. In the main `terminal_19` folder, create a new file called `.env`. This will contain important details that our bot needs to run. Type `DISCORD_TOKEN=` on one line. Back in the Discord Developer Portal *Bot* page, click "Reset Token", then paste your bot token after the `=`. This is necessary for the bot to be able to interface with Discord, so ensure that it's properly pasted. Save the file when done.
-**⚠️ WARNING: DO NOT SHARE YOUR BOT TOKEN WITH ANYONE!** If it's stolen, others can log in as this bot with custom functionality NOT in your code.
+> [!WARNING]
+> **Do NOT share your bot token or .env file with anyone!** If it's stolen, others can log in as this bot and do whatever they want with it under your Developer account.
 6. If you only want certain users to be able to use the bot, add `ALLOWED_ROLES=` on another line in `.env` with comma-separated Discord role names (e.g. `ALLOWED_ROLES=Admin,Moderator,Volunteer`). Only users with one of these roles can use interface commands like `!help`, `!play`, `!leave`. If you omit `ALLOWED_ROLES` or leave it empty, any user will be able to use all bot commands. Save the file when done.
 7. Install the required dependencies specified in `requirements.txt`. You can do this easily by opening Command Prompt, Terminal, or equivalent program on your device, navigate to the `terminal_19` folder using `cd path/to/terminal_19`, and run `pip install -r requirements.txt` to install all required Python libraries.
 8. Return to your application on the Discord Developer Portal and go to the OAuth2 tab. Scroll down to *OAuth2 URL Generator*. This is where you'll create the invite link that you will use to invite the bot into your server. Toggle "bot", "applications.commands", and then under Bot Permissions, "View Channels", "Send Messages", "Send Messages in Threads", "Manage Messages", "Read Message History", "Add Reactions", "Connect", "Speak", and "Use Voice Activity". Then, under Integration Type, choose "Guild Install". Copy the Generated URL and store it so you can use it to reinvite the bot going forward.
@@ -43,7 +44,8 @@ Find a compatible audio file (`.mp3`, `.wav`, `.ogg`, `.m4a`, or `.flac`) that y
 
 In the `audio` folder of the bot, place your files there. The bot will now be able to find and play audio from the folder. You can even add and remove tracks from there while the bot is still running, although removing a track while the bot is playing it may cause critical errors.
 
-You can also place additional subfolders in the `audio` folder. The bot will be able to play audio tracks from these, and you can filter the `!audio` search by adding the folder name afterwards (e.g. `!audio my_music` for `audio/my_music`).
+> [!TIP]
+> You can also place additional subfolders in the `audio` folder. The bot will be able to play audio tracks from these, and you can filter the `!audio` search by adding the folder name afterwards (e.g. `!audio my_music` for `audio/my_music`).
 
 ## Miscellaneous Information
 
