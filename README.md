@@ -43,7 +43,9 @@ In the `audio` folder of the bot, place your files there. The bot will now be ab
 
 You can also place additional subfolders in the `audio` folder. The bot will be able to play audio tracks from these, and you can filter the `!audio` search by adding the folder name afterwards (e.g. `!audio my_music` for `audio/my_music`).
 
-### Development environment
+### Miscellaneous Information
+
+## Development environment
 
 To recreate the development environment, you need the following software and/or libraries with the specified versions:
 
