@@ -9,12 +9,12 @@ import os
 import time
 
 # Bot version number
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 
 # Print Discord.py version and file load location for debug
 print("Discord.py Version:", discord.__version__)
 print("Loaded from:", discord.__file__)
-print(f"TERMINAL_19 Version: {VERSION}")
+print(f"Woolwav Version: {VERSION}")
 
 # Load .env file, import token and allowed roles (if any)
 load_dotenv()
