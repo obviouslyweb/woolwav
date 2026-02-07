@@ -34,9 +34,9 @@ TERMINAL_19 is an audio streaming bot created using Discord.py that allows users
 ## Using TERMINAL_19
 
 1. Using Command Prompt, Terminal, or an equivalent program, navigate to the `terminal_19` folder using `cd your_path_to/terminal_19`.
-2. Type `python main.py` to turn the bot on. After a few seconds, the bot should load and display a message, "Logged in as (bot name)#1234 (ID: ####)". Once you see this message, the bot will start accepting commands.
-3. In Discord, use !help on any channel the bot is in to see the bot's available commands.
-4. To turn off the bot, use `CTRL + C` on the window you used to enable the bot. This will take it offline until you turn it back on.
+2. Type `python main.py` to turn the bot on. After a few seconds, the bot should load and display a message, `Logged in as (bot name)#1234 (ID: ####)`. Once you see this message, the bot will start accepting commands.
+3. In Discord, use !help on any channel the bot is in to see the available commands.
+4. To turn off the bot, use `CTRL + C` on the terminal window you used to run the bot. This will terminate the bot entirely. If using Command Prompt or Powershell, closing the window will also terminate the bot.
 
 ## Adding audio tracks
 
