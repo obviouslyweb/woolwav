@@ -60,7 +60,7 @@ class CommandsCog(commands.Cog):
                 "/leave — Leave the voice channel\n\n"
                 "**Audio**\n"
                 "/play (filename) — Join VC and play; use /sounds to list files\n"
-                "/sounds [subfolder] — List available audio; optional subfolder to browse\n"
+                "/audio [subfolder] — List available audio; optional subfolder to browse\n"
                 "/skip — Skip to the next track\n"
                 "/queue — Show now playing and queue\n"
                 "/loop — Toggle looping for the current track\n"
