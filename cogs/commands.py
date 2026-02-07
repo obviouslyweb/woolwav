@@ -1,6 +1,7 @@
 """Basic commands cog for info, help, leave, etc."""
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from checks import check_allowed_roles
 
@@ -9,6 +10,11 @@ class CommandsCog(commands.Cog):
         self.bot = bot
         print("Cog 'commands' loaded.")
         self.__cog_name__ = "Core"
+
+    @app_commands.command(name="echo", description="Echoes a message.")
+    @app_commands.describe(message="The message to echo.")
+    async def echo(self, interaction: discord.Interaction, message: str) -> None:
+        await interaction.response.send_message(message)
 
     @commands.command(name="info", help="Display bot version and details.")
     async def info(self, ctx):

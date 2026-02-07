@@ -17,6 +17,10 @@ token = os.getenv('DISCORD_TOKEN')
 _allowed_roles_raw = (os.getenv("ALLOWED_ROLES") or "").strip()
 bot_allowed_roles = [name.strip() for name in _allowed_roles_raw.split(",") if name.strip()] if _allowed_roles_raw else []
 
+# Set GUILD_ID in .env to sync slash commands to that server instantly (for testing, will not be kept in final)
+_guild_id_raw = (os.getenv("GUILD_ID") or "").strip()
+sync_guild_id = int(_guild_id_raw) if _guild_id_raw.isdigit() else None
+
 # Create log directory if it doesn't exist
 script_dir = os.path.dirname(os.path.abspath(__file__))
 log_dir = os.path.join(script_dir, "logs")
@@ -31,8 +35,9 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-# Define bots, command prefix
+# Define bots, command tree/prefix
 bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
+tree = bot.tree
 bot.allowed_roles = bot_allowed_roles
 
 # On ready event
@@ -40,12 +45,16 @@ bot.allowed_roles = bot_allowed_roles
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
 
-# Load cogs
+# Load cogs and sync slash commands
 @bot.event
 async def setup_hook():
     await bot.load_extension("cogs.commands")
     await bot.load_extension("cogs.events")
     await bot.load_extension("cogs.audio")
+    await bot.tree.sync()
+    if sync_guild_id:
+        await bot.tree.sync(guild=discord.Object(id=sync_guild_id))
+        print(f"[DEBUG] Slash commands synced to guild ID {sync_guild_id} (instant for that server).")
 
 # Run bot
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
