@@ -35,8 +35,11 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-# Define bots, command tree/prefix
-bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
+# Slash commands only; no prefix
+def _no_prefix(_bot, _message):
+    return []
+
+bot = commands.Bot(command_prefix=_no_prefix, intents=intents, help_command=None)
 tree = bot.tree
 bot.allowed_roles = bot_allowed_roles
 
@@ -49,7 +52,6 @@ async def on_ready():
 @bot.event
 async def setup_hook():
     await bot.load_extension("cogs.commands")
-    await bot.load_extension("cogs.events")
     await bot.load_extension("cogs.audio")
     await bot.tree.sync()
     if sync_guild_id:
