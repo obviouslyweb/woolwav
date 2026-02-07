@@ -1,8 +1,9 @@
 """Basic commands cog for info, help, leave, etc."""
 
 import discord
+from discord import app_commands
 from discord.ext import commands
-from checks import check_allowed_roles
+from checks import check_allowed_roles, interaction_has_allowed_role
 
 class CommandsCog(commands.Cog):
     def __init__(self, bot):
@@ -10,42 +11,61 @@ class CommandsCog(commands.Cog):
         print("Cog 'commands' loaded.")
         self.__cog_name__ = "Core"
 
-    @commands.command(name="info", help="Display bot version and details.")
-    async def info(self, ctx):
-        print("Info command sent. Attempting to send response...")
-        await ctx.send("`CURRENTLY RUNNING TERMINAL_19 BOT VERSION 1.0.0.`")
-
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def help(self, ctx):
-        await ctx.send("```"
-            "TERMINAL_19 COMMANDS\n\n"
-            "[ CORE COMMANDS ]\n"
-            "!help - Display all commands\n"
-            "!info - Display bot version\n"
-            "\n"
-            "[ AUDIO COMMANDS ]\n"
-            "!leave - Have the bot leave the voice channel it's in.\n"
-            "!play (filename.ext) - Have the bot join the VC and play audio from the bot's sounds list. Filename & extension required.\n"
-            "!audio {subfolder} - Display the bot's sound list in full. Subfolder parameter is optional, allows you to view audio files in a subfolder.\n"
-            "!skip - Skips to the next song in the queue.\n"
-            "!queue - Show the currently playing track and queued songs, as well as looping status.\n"
-            "!loop - Toggles looping, where the currently playing song will replay indefinitely.\n"
-            "!stop - Force the bot to stop playing audio entirely, AND clear the queue.\n"
-            "!clearqueue - Clear all tracks in the queue.\n"
-            "!pause - Pauses the currently playing track.\n"
-            "!unpause - Resume playing a paused track.\n"
-            "```"
+    @app_commands.command(name="info", description="Display bot version and details.")
+    async def info(self, interaction: discord.Interaction) -> None:
+        embed = discord.Embed(
+            title="TERMINAL_19",
+            description="Currently running TERMINAL_19. Specific details coming soon.",
+            color=0x5865F2,
         )
+        embed.set_footer(text="Slash commands • Use /help for the full command list")
+        await interaction.response.send_message(embed=embed)
 
-    @commands.command(name="leave", help="Leave the current voice channel.")
-    @commands.check(check_allowed_roles)
-    async def leave(self, ctx):
-        if ctx.voice_client:
-            await ctx.voice_client.disconnect()
-            await ctx.send("`DISCONNECTED FROM VOICE CHANNEL.`")
+    @app_commands.command(name="help", description="Display all commands.")
+    async def help(self, interaction: discord.Interaction) -> None:
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message(
+                "You don't have permission to use this command.",
+                ephemeral=True,
+            )
+            return
+        embed = discord.Embed(
+            title="TERMINAL_19 Commands",
+            description=(
+                "**Core**\n"
+                "/help — Display this message\n"
+                "/info — Bot version and details\n"
+                "/leave — Leave the voice channel\n\n"
+                "**Audio**\n"
+                "/play (filename) — Join VC and play; use /sounds to list files\n"
+                "/sounds [subfolder] — List available audio; optional subfolder to browse\n"
+                "/skip — Skip to the next track\n"
+                "/queue — Show now playing and queue\n"
+                "/loop — Toggle looping for the current track\n"
+                "/stop — Stop and clear the queue\n"
+                "/clearqueue — Clear the queue\n"
+                "/pause — Pause playback\n"
+                "/unpause — Resume playback"
+            ),
+            color=0x5865F2,
+        )
+        embed.set_footer(text="Use slash commands with / in the chat")
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="leave", description="Leave the current voice channel.")
+    async def leave(self, interaction: discord.Interaction) -> None:
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message(
+                "You don't have permission to use this command.",
+                ephemeral=True,
+            )
+            return
+        voice_client = interaction.guild.voice_client if interaction.guild else None
+        if voice_client:
+            await voice_client.disconnect()
+            await interaction.response.send_message("Disconnected from voice channel.")
         else:
-            await ctx.send("`NOT CURRENTLY IN A VOICE CHANNEL.`")
+            await interaction.response.send_message("Not currently in a voice channel to leave.")
 
 async def setup(bot):
     await bot.add_cog(CommandsCog(bot))

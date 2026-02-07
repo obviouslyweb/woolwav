@@ -31,8 +31,12 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-# Define bots, command prefix
-bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
+# Slash commands only; no prefix
+def _no_prefix(_bot, _message):
+    return []
+
+bot = commands.Bot(command_prefix=_no_prefix, intents=intents, help_command=None)
+tree = bot.tree
 bot.allowed_roles = bot_allowed_roles
 
 # On ready event
@@ -40,12 +44,12 @@ bot.allowed_roles = bot_allowed_roles
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
 
-# Load cogs
+# Load cogs and sync slash commands
 @bot.event
 async def setup_hook():
     await bot.load_extension("cogs.commands")
-    await bot.load_extension("cogs.events")
     await bot.load_extension("cogs.audio")
+    await bot.tree.sync()
 
 # Run bot
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)

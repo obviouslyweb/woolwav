@@ -3,8 +3,9 @@
 import discord
 import os
 import asyncio
+from discord import app_commands
 from discord.ext import commands
-from checks import check_allowed_roles
+from checks import interaction_has_allowed_role
 
 class AudioCog(commands.Cog):
     def __init__(self, bot):
@@ -30,225 +31,262 @@ class AudioCog(commands.Cog):
     def resolve_audio_path(self, filename):
         return os.path.join(self.audio_folder, filename)
 
-    def play_next(self, ctx, guild_id):
+    def play_next(self, channel, guild_id):
+        # Queue consumer; sends status to channel
         queue = self.get_queue(guild_id)
+        guild = self.bot.get_guild(guild_id)
+        voice_client = guild.voice_client if guild else None
 
-        async def _play(): # Main playing function
+        async def _play():
             if queue.empty():
                 return
             filename = await queue.get()
             self.queue_cache[guild_id].pop(0)
             file_path = self.resolve_audio_path(filename)
             if not os.path.exists(file_path):
-                await ctx.send(f"`FILE '{filename}' NOT FOUND.`")
-                self.play_next(ctx, guild_id)
+                await channel.send(f"Couldn't find `{filename}`; please check your spelling and try again.")
+                self.play_next(channel, guild_id)
                 return
 
-            self.current_track[ctx.guild.id] = self.resolve_audio_path(filename)
+            self.current_track[guild_id] = self.resolve_audio_path(filename)
             print(f"[DEBUG] Now playing: {filename}")
-            await ctx.send(f"`NOW PLAYING '{filename}'.`")
+            await channel.send(f"Now playing `{filename}`.")
             source = discord.FFmpegPCMAudio(file_path, executable="ffmpeg")
 
-            def after_playing(error): # Checks after song conclusion to determine next action
+            def after_playing(error):
                 if error:
                     print(f"[ERROR] Playback error: {error}")
                 if self.skip_requested.get(guild_id):
                     print(f"[DEBUG] Skip was requested; ignoring current loop.")
                     self.skip_requested[guild_id] = False
-                    fut = asyncio.run_coroutine_threadsafe(
-                        self._safe_play_next(ctx, guild_id), self.bot.loop
+                    asyncio.run_coroutine_threadsafe(
+                        self._safe_play_next(channel, guild_id), self.bot.loop
                     )
                     return
                 if self.looping.get(guild_id):
                     print(f"[DEBUG] Looping track: {self.current_track[guild_id]}")
                     new_source = discord.FFmpegPCMAudio(self.current_track[guild_id], executable="ffmpeg")
-                    ctx.voice_client.play(new_source, after=after_playing)
+                    if voice_client:
+                        voice_client.play(new_source, after=after_playing)
                     return
-                fut = asyncio.run_coroutine_threadsafe(
-                    self._safe_play_next(ctx, guild_id), self.bot.loop
+                asyncio.run_coroutine_threadsafe(
+                    self._safe_play_next(channel, guild_id), self.bot.loop
                 )
 
-            ctx.voice_client.play(source, after=after_playing)
+            if voice_client:
+                voice_client.play(source, after=after_playing)
 
         asyncio.create_task(_play())
 
-    async def _safe_play_next(self, ctx, guild_id): # Short delay called between track start/stop
+    async def _safe_play_next(self, channel, guild_id):
         await asyncio.sleep(1)
-        self.play_next(ctx, guild_id)
+        self.play_next(channel, guild_id)
 
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def play(self, ctx, *, filename: str):
-        """Queue up audio from the audio folder if it's a valid audio file."""
-        guild_id = ctx.guild.id
+    @app_commands.command(name="play", description="Queue audio from the bot's audio folder. Use /audio to list files.")
+    @app_commands.describe(filename="Filename with extension, e.g. song.mp3 or subfolder/song.mp3")
+    async def play(self, interaction: discord.Interaction, filename: str):
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
+            return
+        if not interaction.guild:
+            await interaction.response.send_message("Hey, this command only works in servers! What are you doing?", ephemeral=True)
+            return
+        guild_id = interaction.guild.id
         print(f"[DEBUG] Play command received with filename: {filename!r}")
         file_path = self.resolve_audio_path(filename)
 
         valid_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
         if not filename.lower().endswith(valid_extensions):
-            await ctx.send(f"`'{filename}' IS NOT A SUPPORTED AUDIO FILE.`")
-            print(f"[DEBUG] Could not play {filename!r}; it's unsupported.")
+            await interaction.response.send_message(f"`{filename}` isn't supported! Please use a supported audio file.", ephemeral=True)
             return
 
         if not os.path.exists(file_path):
-            await ctx.send(f"`FILE '{filename}' DOES NOT EXIST.`")
-            print(f"[DEBUG] Could not play {filename!r}; it does not exist.")
+            await interaction.response.send_message(f"Couldn't find `{filename}`; please check your spelling and try again.", ephemeral=True)
             return
 
-        if not ctx.voice_client:
-            if ctx.author.voice and ctx.author.voice.channel:
-                print(f"[DEBUG] Beginning connection attempt...")
-                await ctx.author.voice.channel.connect()
-                await ctx.send(f"`JOINED {ctx.author.voice.channel.name}.`")
-                print(f"[DEBUG] Connection attempt passed.")
-            else:
-                print(f"[DEBUG] Player not in voice channel; cancelling request.")
-                await ctx.send("`YOU MUST BE IN A VOICE CHANNEL TO PLAY AUDIO.`")
+        voice_client = interaction.guild.voice_client
+        just_connected = False
+        if not voice_client:
+            author_voice = getattr(interaction.user, "voice", None)
+            if not author_voice or not author_voice.channel:
+                await interaction.response.send_message("You must be in a voice channel to play audio.`", ephemeral=True)
                 return
+            await author_voice.channel.connect()
+            voice_client = interaction.guild.voice_client
+            just_connected = True
 
-        print(f"[DEBUG] Queuing song...")
         queue = self.get_queue(guild_id)
         await queue.put(filename)
         self.queue_cache[guild_id].append(filename)
-        await ctx.send(f"`QUEUED: '{filename}'.`")
-        print(f"[DEBUG] Song queued.")
 
-        if not ctx.voice_client.is_playing():
-            print(f"[DEBUG] Nothing playing; starting newly queued song.")
-            self.play_next(ctx, guild_id)
+        if just_connected:
+            await interaction.response.send_message(f"Joined {voice_client.channel.name}, queued track: `{filename}`.")
+        else:
+            await interaction.response.send_message(f"Queued the following track: `{filename}`.")
+
+        if not voice_client.is_playing():
+            self.play_next(interaction.channel, guild_id)
 
 
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def skip(self, ctx):
-        """Skip the currently playing track."""
-        guild_id = ctx.guild.id
-        if not ctx.voice_client:
-            await ctx.send("`NOT IN A VOICE CHANNEL.`")
+    @app_commands.command(name="skip", description="Skip the currently playing track.")
+    async def skip(self, interaction: discord.Interaction):
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
             return
-
-        if ctx.voice_client.is_playing():
+        if not interaction.guild:
+            await interaction.response.send_message("Not currently in a voice channel.", ephemeral=True)
+            return
+        guild_id = interaction.guild.id
+        voice_client = interaction.guild.voice_client
+        if not voice_client:
+            await interaction.response.send_message("Not currently in a voice channel.")
+            return
+        if voice_client.is_playing():
             self.skip_requested[guild_id] = True
-            ctx.voice_client.stop()
-
+            voice_client.stop()
             await asyncio.sleep(1)
-
             queue = self.get_queue(guild_id)
             if queue.empty():
-                await ctx.send("`REACHED END OF QUEUE. USE !play (file) TO CONTINUE PLAYBACK.`")
+                await interaction.response.send_message("The end of the queue has been reached. Use /play (file) to continue audio playback.")
             else:
-                await ctx.send("`SKIPPED TO NEXT TRACK.`")
+                await interaction.response.send_message("Skipped to the next track.")
         else:
-            await ctx.send("`NO AUDIO TO SKIP.`")
+            await interaction.response.send_message("There's no audio playing to skip!")
 
 
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def stop(self, ctx):
-        """Stop playing current audio and clear the queue."""
-        guild_id = ctx.guild.id
-        if ctx.voice_client:
-            ctx.voice_client.stop()
-            queue = self.get_queue(ctx.guild.id)
+    @app_commands.command(name="stop", description="Stop playing and clear the queue.")
+    async def stop(self, interaction: discord.Interaction):
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
+            return
+        if not interaction.guild:
+            await interaction.response.send_message("Not currently in a voice channel.", ephemeral=True)
+            return
+        guild_id = interaction.guild.id
+        voice_client = interaction.guild.voice_client
+        if voice_client:
+            voice_client.stop()
+            queue = self.get_queue(guild_id)
             self.queue_cache[guild_id].clear()
-            self.looping[ctx.guild.id] = False
+            self.looping[guild_id] = False
             while not queue.empty():
                 queue.get_nowait()
-            await ctx.send("`AUDIO STOPPED AND QUEUE CLEARED.`")
+            await interaction.response.send_message("Audio has been stopped and the queue has been erased.")
         else:
-            await ctx.send("`NOT IN A VOICE CHANNEL.`")
+            await interaction.response.send_message("Not currently in a voice channel.")
     
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def clearqueue(self, ctx):
-        """Clear the rest of the song queue."""
-        guild_id = ctx.guild.id
-        if ctx.voice_client:
-            queue = self.get_queue(ctx.guild.id)
+    @app_commands.command(name="clearqueue", description="Clear the rest of the song queue.")
+    async def clearqueue(self, interaction: discord.Interaction):
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
+            return
+        if not interaction.guild:
+            await interaction.response.send_message("Not currently in a voice channel to clear the queue.", ephemeral=True)
+            return
+        guild_id = interaction.guild.id
+        voice_client = interaction.guild.voice_client
+        if voice_client:
+            queue = self.get_queue(guild_id)
             self.queue_cache[guild_id].clear()
             if not queue.empty():
                 while not queue.empty():
                     queue.get_nowait()
-                await ctx.send("`QUEUE CLEARED.`")
+                await interaction.response.send_message("The queue has been cleared.")
             else:
-                await ctx.send("`THERE ARE NO QUEUED SONGS TO CLEAR.`")
+                await interaction.response.send_message("The queue is already empty.")
         else:
-            await ctx.send("`NOT IN A VOICE CHANNEL.`")
+            await interaction.response.send_message("Not currently in a voice channel to clear the queue.")
 
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def loop(self, ctx):
-        """Disable or enable track looping."""
-        if self.looping.get(ctx.guild.id, False):
-            self.looping[ctx.guild.id] = False
-            await ctx.send("`LOOPING HAS BEEN DISABLED.`")
+    @app_commands.command(name="loop", description="Toggle looping for the current track.")
+    async def loop(self, interaction: discord.Interaction):
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
+            return
+        if not interaction.guild:
+            await interaction.response.send_message("`USE THIS COMMAND IN A SERVER.`", ephemeral=True)
+            return
+        guild_id = interaction.guild.id
+        if self.looping.get(guild_id, False):
+            self.looping[guild_id] = False
+            await interaction.response.send_message("Looping is now disabled.")
         else:
-            self.looping[ctx.guild.id] = True
-            await ctx.send("`LOOPING HAS BEEN ENABLED.`")
+            self.looping[guild_id] = True
+            await interaction.response.send_message("Looping is now enabled.")
 
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def pause(self, ctx):
-        """Pause the currently playing track."""
-        if ctx.voice_client and ctx.voice_client.is_playing():
-            ctx.voice_client.pause()
-            await ctx.send("`AUDIO PAUSED.`")
+    @app_commands.command(name="pause", description="Pause the currently playing track.")
+    async def pause(self, interaction: discord.Interaction):
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
+            return
+        if not interaction.guild:
+            await interaction.response.send_message("No audio is currently playing that can be paused.", ephemeral=True)
+            return
+        voice_client = interaction.guild.voice_client
+        if voice_client and voice_client.is_playing():
+            voice_client.pause()
+            await interaction.response.send_message("Audio is now paused.")
         else:
-            await ctx.send("`NO AUDIO TO PAUSE.`")
+            await interaction.response.send_message("No audio is currently playing that can be paused.")
 
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def unpause(self, ctx):
-        """Resume playing the currently paused track."""
-        if ctx.voice_client and ctx.voice_client.is_paused():
-            ctx.voice_client.resume()
-            await ctx.send("`AUDIO RESUMED.`")
+    @app_commands.command(name="unpause", description="Resume the paused track.")
+    async def unpause(self, interaction: discord.Interaction):
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
+            return
+        if not interaction.guild:
+            await interaction.response.send_message("Audio is not currently paused.", ephemeral=True)
+            return
+        voice_client = interaction.guild.voice_client
+        if voice_client and voice_client.is_paused():
+            voice_client.resume()
+            await interaction.response.send_message("Continuing playback.")
         else:
-            await ctx.send("`AUDIO IS NOT PAUSED.`")
+            await interaction.response.send_message("Audio is not currently paused.")
 
-    @commands.command()
-    async def queue(self, ctx):
-        """View the current queue, as well as currently playing music and the loop status."""
-        guild_id = ctx.guild.id
+    @app_commands.command(name="queue", description="View the current queue and now playing.")
+    async def queue(self, interaction: discord.Interaction):
+        if not interaction.guild:
+            await interaction.response.send_message("The queue is currently empty.", ephemeral=True)
+            return
+        guild_id = interaction.guild.id
         current = self.current_track.get(guild_id)
         queue = self.queue_cache.get(guild_id, [])
 
         if not current and not queue:
-            await ctx.send("`QUEUE IS CURRENTLY EMPTY.`")
+            await interaction.response.send_message("The queue is currently empty.")
             return
-        
-        message = ""
 
+        message = ""
         if current:
             current_filename = os.path.basename(current)
-            message += f"`NOW PLAYING --> {current_filename}`\n\n"
-        
+            message += f"**Now playing:** `{current_filename}`\n\n"
         if queue:
-            message += "`PLAYING NEXT:`\n"
+            message += "Playing next:\n"
             for i, track in enumerate(queue, start=1):
                 message += f"`{i}. {track}`\n"
-        
         if self.looping.get(guild_id):
-            message += "`LOOPING = ON`"
+            message += "Looping is now enabled."
         else:
-            message += "`LOOPING = OFF`"
-        
-        await ctx.send(message)
+            message += "Looping is now disabled."
+        await interaction.response.send_message(message)
 
-    @commands.command()
-    @commands.check(check_allowed_roles)
-    async def audio(self, ctx, opt_dir=None):
-        """Displays available tracks in the current folder; use !audio (folder) to view a subfolder."""
+    @app_commands.command(name="audio", description="List available audio. Optionally give a subfolder to view its contents.")
+    @app_commands.describe(subfolder="Optional subfolder path, e.g. 'wip', 'soundtrack', 'sfx', etc.")
+    async def audio(self, interaction: discord.Interaction, subfolder: str = None):
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
+            return
         try:
+            opt_dir = subfolder
             search_folder = os.path.join(self.audio_folder, opt_dir) if opt_dir else self.audio_folder
             audio_folder_real = os.path.realpath(self.audio_folder)
             search_folder_real = os.path.realpath(search_folder)
 
             if not os.path.isdir(search_folder):
-                await ctx.send("`FOLDER NOT FOUND.`")
+                await interaction.response.send_message("That folder couldn't be found. Please check your spelling and try again.", ephemeral=True)
                 return
             if not search_folder_real.startswith(audio_folder_real):
-                await ctx.send("`INVALID FOLDER PATH.`")
+                await interaction.response.send_message("That folder path is not valid.", ephemeral=True)
                 return
 
             valid_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
@@ -264,12 +302,12 @@ class AudioCog(commands.Cog):
 
             folders.sort()
             files.sort()
-            folder_entries = [f"📁 **{path}**" for path in folders]
+            folder_entries = [f"📁 **{path}** (folder)" for path in folders]
             file_entries = [f"`{path}`" for path in files]
             all_entries = folder_entries + file_entries
 
             if not all_entries:
-                await ctx.send("`NO AUDIO FILES OR SUBFOLDERS IN THIS FOLDER.`")
+                await interaction.response.send_message("No audio files or subfolders were found in this folder.")
                 return
 
             page_size = 10
@@ -280,30 +318,33 @@ class AudioCog(commands.Cog):
             def get_page_embed(page):
                 lines = [f"{1 + page * page_size + i}. {name}" for i, name in enumerate(pages[page])]
                 embed = discord.Embed(
-                    title=f"Available audio *(page {page+1}/{total_pages})*",
+                    title=f"Available audio (page {page+1}/{total_pages})",
                     description="\n".join(lines),
                     color=0x5865F2,
                 )
-                embed.set_footer(text="Use !audio (folder) to view a folder • !play (filename) to play • Arrow reactions to change pages" if total_pages > 1 else "Use !audio (folder) to view a folder • !play (filename) to play")
+                footer = "Use /audio (folder) to view a folder • /play (filename) to play"
+                if total_pages > 1:
+                    footer += " • Arrow reactions to change pages"
+                embed.set_footer(text=footer)
                 return embed
 
-            message = await ctx.send(embed=get_page_embed(current_page))
+            await interaction.response.send_message(embed=get_page_embed(current_page))
+            message = await interaction.original_response()
 
             if total_pages == 1:
                 return
-                
+
             await message.add_reaction("⬅️")
             await message.add_reaction("➡️")
 
             def check(reaction, user):
                 return (
-                    user == ctx.author and reaction.message.id == message.id and str(reaction.emoji) in ["⬅️", "➡️"]
+                    user == interaction.user and reaction.message.id == message.id and str(reaction.emoji) in ["⬅️", "➡️"]
                 )
-                
+
             while True:
                 try:
                     reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
-
                     if str(reaction.emoji) == "➡️":
                         if current_page < total_pages - 1:
                             current_page += 1
@@ -312,16 +353,17 @@ class AudioCog(commands.Cog):
                         if current_page > 0:
                             current_page -= 1
                             await message.edit(embed=get_page_embed(current_page))
-                        
                     await message.remove_reaction(reaction, user)
-                    
                 except asyncio.TimeoutError:
                     await message.clear_reactions()
                     break
 
         except Exception as e:
-            await ctx.send(f"`ERROR READING AUDIO FOLDER.`")
             print(f"[ERROR] Error reading audio folder in audio command: {e}")
+            try:
+                await interaction.response.send_message("There was an error attempting to read the audio folder.`", ephemeral=True)
+            except Exception:
+                await interaction.followup.send("There was an error attempting to read the audio folder.", ephemeral=True)
                 
 async def setup(bot):
     await bot.add_cog(AudioCog(bot))
