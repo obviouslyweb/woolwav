@@ -49,6 +49,15 @@ In the `audio` folder of the bot, place your files there. The bot will now be ab
 
 ## Miscellaneous Information
 
+### Contributors
+* [obviouslyweb](https://github.com/obviouslyweb)
+
+### Encounter a bug / have an idea / want to contribute?
+
+Please don't hesitate to add an issue if you encounter a bug or have an idea for enhancement.
+
+Contributors are welcome to add issues and suggest pull requests to improve the functionality of TERMINAL_19! If you want something done, create an issue for it and connect a pull request to it. I'll take a look at it when I can. If you contribute, you'll be credited here!
+
 ### Development environment
 
 To recreate the development environment, you need the following software and/or libraries with the specified versions:
@@ -65,12 +74,6 @@ I found these websites useful in developing this software:
 * [discord.py](https://discordpy.readthedocs.io/en/stable/)'s documentation on the Python libraries used to create this application
 * [Python Package Index - discord.py](https://pypi.org/project/discord.py/)
 * [Discord Developer Documentation](https://discord.com/developers/docs/intro)
-
-### To-Do List
-
-* [ ] Additional playback features (show current timestamp of playing song in !queue, keep playlist mode, etc.)
-* [ ] Integrate functionality with Discord slash commands (the ability to use /play instead of !play).
-* [ ] Include integration with YouTube or Soundcloud APIs for streaming music from online sources
 
 ## Legal Disclaimers
 
