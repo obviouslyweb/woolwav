@@ -31,6 +31,20 @@ class AudioCog(commands.Cog):
     def resolve_audio_path(self, filename):
         return os.path.join(self.audio_folder, filename)
 
+    def collect_audio_from_folder(self, folder_path):
+        # Get audio paths from folder, used when playing a folder
+        audio_folder_real = os.path.realpath(self.audio_folder)
+        folder_real = os.path.realpath(folder_path)
+        if not folder_real.startswith(audio_folder_real):
+            return
+        valid_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
+        for root, _dirs, files in os.walk(folder_path):
+            for f in files:
+                if f.lower().endswith(valid_extensions):
+                    full = os.path.join(root, f)
+                    rel = os.path.relpath(full, self.audio_folder)
+                    yield rel.replace(os.sep, '/')
+
     def play_next(self, channel, guild_id):
         # Queue consumer; sends status to channel
         queue = self.get_queue(guild_id)
@@ -83,8 +97,9 @@ class AudioCog(commands.Cog):
         self.play_next(channel, guild_id)
 
     @app_commands.command(name="play", description="Queue audio from the bot's audio folder. Use /audio to list files.")
-    @app_commands.describe(filename="Filename with extension, e.g. song.mp3 or subfolder/song.mp3")
+    @app_commands.describe(filename="Filename with extension, e.g. song.mp3 or subfolder/song.mp3 or folder path to queue all tracks")
     async def play(self, interaction: discord.Interaction, filename: str):
+        # Check if user has command permissions
         if not interaction_has_allowed_role(interaction):
             await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
             return
@@ -94,35 +109,59 @@ class AudioCog(commands.Cog):
         guild_id = interaction.guild.id
         print(f"[DEBUG] Play command received with filename: {filename!r}")
         file_path = self.resolve_audio_path(filename)
-
         valid_extensions = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
-        if not filename.lower().endswith(valid_extensions):
-            await interaction.response.send_message(f"`{filename}` isn't supported! Please use a supported audio file.", ephemeral=True)
-            return
 
-        if not os.path.exists(file_path):
-            await interaction.response.send_message(f"Couldn't find `{filename}`; please check your spelling and try again.", ephemeral=True)
-            return
+        # Determine if single file or folder
+        to_queue = []
+        if filename.lower().endswith(valid_extensions):
+            if not os.path.exists(file_path):
+                await interaction.response.send_message(f"Couldn't find `{filename}`; please check your spelling and try again.", ephemeral=True)
+                return
+            if not os.path.isfile(file_path):
+                await interaction.response.send_message(f"`{filename}` is a folder. Omit the extension to queue the whole folder, or use a file path.", ephemeral=True)
+                return
+            to_queue = [filename]
+        else:
+            if not os.path.isdir(file_path):
+                await interaction.response.send_message(f"Couldn't find folder or file `{filename}`. Use a supported audio file or a folder path under the audio folder.", ephemeral=True)
+                return
+            audio_folder_real = os.path.realpath(self.audio_folder)
+            folder_real = os.path.realpath(file_path)
+            if not folder_real.startswith(audio_folder_real):
+                await interaction.response.send_message("That folder path is not valid.", ephemeral=True)
+                return
+            to_queue = list(self.collect_audio_from_folder(file_path))
+            if not to_queue:
+                await interaction.response.send_message(f"No audio files found in folder `{filename}`.", ephemeral=True)
+                return
 
+        # Connect to voice client
         voice_client = interaction.guild.voice_client
         just_connected = False
         if not voice_client:
             author_voice = getattr(interaction.user, "voice", None)
             if not author_voice or not author_voice.channel:
-                await interaction.response.send_message("You must be in a voice channel to play audio.`", ephemeral=True)
+                await interaction.response.send_message("You must be in a voice channel to play audio.", ephemeral=True)
                 return
             await author_voice.channel.connect()
             voice_client = interaction.guild.voice_client
             just_connected = True
 
         queue = self.get_queue(guild_id)
-        await queue.put(filename)
-        self.queue_cache[guild_id].append(filename)
+        for entry in to_queue:
+            await queue.put(entry)
+            self.queue_cache[guild_id].append(entry)
 
         if just_connected:
-            await interaction.response.send_message(f"Joined {voice_client.channel.name}, queued track: `{filename}`.")
+            if len(to_queue) == 1:
+                await interaction.response.send_message(f"Joined {voice_client.channel.name}, queued track: `{to_queue[0]}`.")
+            else:
+                await interaction.response.send_message(f"Joined {voice_client.channel.name}, queued **{len(to_queue)}** tracks from `{filename}`.")
         else:
-            await interaction.response.send_message(f"Queued the following track: `{filename}`.")
+            if len(to_queue) == 1:
+                await interaction.response.send_message(f"Queued the following track: `{to_queue[0]}`.")
+            else:
+                await interaction.response.send_message(f"Queued **{len(to_queue)}** tracks from `{filename}`.")
 
         if not voice_client.is_playing():
             self.play_next(interaction.channel, guild_id)
@@ -203,7 +242,7 @@ class AudioCog(commands.Cog):
             await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
             return
         if not interaction.guild:
-            await interaction.response.send_message("`USE THIS COMMAND IN A SERVER.`", ephemeral=True)
+            await interaction.response.send_message("Please use this command in a server.", ephemeral=True)
             return
         guild_id = interaction.guild.id
         if self.looping.get(guild_id, False):
@@ -253,22 +292,32 @@ class AudioCog(commands.Cog):
         queue = self.queue_cache.get(guild_id, [])
 
         if not current and not queue:
-            await interaction.response.send_message("The queue is currently empty.")
+            embed = discord.Embed(
+                title="Queue",
+                description="The queue is currently empty.",
+                color=0x5865F2,
+            )
+            await interaction.response.send_message(embed=embed)
             return
 
-        message = ""
+        embed = discord.Embed(title="Queue", color=0x5865F2)
+
         if current:
             current_filename = os.path.basename(current)
-            message += f"**Now playing:** `{current_filename}`\n\n"
+            embed.add_field(name="Now playing", value=f"`{current_filename}`", inline=False)
+
         if queue:
-            message += "Playing next:\n"
-            for i, track in enumerate(queue, start=1):
-                message += f"`{i}. {track}`\n"
-        if self.looping.get(guild_id):
-            message += "Looping is now enabled."
-        else:
-            message += "Looping is now disabled."
-        await interaction.response.send_message(message)
+            # Discord field value limit is 1024; show up to ~20 tracks or truncate
+            lines = [f"{i}. `{track}`" for i, track in enumerate(queue[:20], start=1)]
+            queue_text = "\n".join(lines)
+            if len(queue) > 20:
+                queue_text += f"\n*...and {len(queue) - 20} more*"
+            embed.add_field(name="Up next", value=queue_text or "—", inline=False)
+
+        loop_status = "Looping is enabled." if self.looping.get(guild_id) else "Looping is disabled."
+        embed.set_footer(text=loop_status)
+
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="audio", description="List available audio. Optionally give a subfolder to view its contents.")
     @app_commands.describe(subfolder="Optional subfolder path, e.g. 'wip', 'soundtrack', 'sfx', etc.")
