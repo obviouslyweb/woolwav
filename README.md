@@ -49,14 +49,9 @@ In the `audio` folder of the bot, place your files there. The bot will now be ab
 
 ## Miscellaneous Information
 
-### Contributors
-* [obviouslyweb](https://github.com/obviouslyweb)
-
 ### Encounter a bug / have an idea / want to contribute?
 
-Please don't hesitate to add an issue if you encounter a bug or have an idea for enhancement.
-
-Contributors are welcome to add issues and suggest pull requests to improve the functionality of Woolwav! If you want something done, create an issue for it and connect a pull request to it. I'll take a look at it when I can. If you contribute, you'll be credited here!
+Please don't hesitate to add an issue if you encounter a bug or have an idea for enhancement. Contributors are also welcome to add issues and suggest pull requests to improve the functionality of Woolwav! If you want something done, create an issue for it and connect a pull request to it. I'll take a look at it when I can.
 
 ### Development environment
 
