@@ -76,4 +76,6 @@ I found these websites useful in developing this software:
 
 *Woolwav Logo © obviouslyweb 2026. You are permitted to use the logo for usage on your own instance of the bot, if desired.*
 
+*If you are a fan of Justin Bieber, you will be prosecuted to the fullest extent of the law. Do not test me.*
+
 *This project makes use of several third-party libraries, each of which is subject to its own license. Key dependencies include [discord.py](https://pypi.org/project/discord.py/) for Discord bot functionality, [python-dotenv](https://pypi.org/project/python-dotenv/) for environment variable management, and [ffmpeg](https://ffmpeg.org/) for audio processing. Please consult the respective links for details on each library’s license terms and ensure compliance when using or modifying this project.*
