@@ -9,7 +9,7 @@ import os
 import time
 
 # Bot version number
-VERSION = "2.3.0"
+VERSION = "2.4.0"
 
 # Print Discord.py version and file load location for debug
 print("Discord.py Version:", discord.__version__)
@@ -58,6 +58,13 @@ async def setup_hook():
     await bot.load_extension("cogs.commands")
     await bot.load_extension("cogs.audio")
     await bot.tree.sync()
+    test_server_id = os.getenv("TEST_SERVER", "").strip()
+    if test_server_id:
+        try:
+            await bot.tree.sync(guild=discord.Object(id=int(test_server_id)))
+            print(f"[DEBUG] Synced slash commands to test server ID {test_server_id}")
+        except Exception as e:
+            print(f"[WARN] Test server sync failed (TEST_SERVER={test_server_id}): {e}")
 
 # Run bot
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)

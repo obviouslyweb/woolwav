@@ -62,6 +62,7 @@ class CommandsCog(commands.Cog):
                 "/play (filename/folder) — Join VC and play; use /sounds to list files\n"
                 "/audio [subfolder] — List available audio; optional subfolder to browse\n"
                 "/skip — Skip to the next track\n"
+                "/skipto (timestamp) — Skip to a specific time in the current track\n"
                 "/queue — Show now playing and queue\n"
                 "/loop — Toggle looping for the current track\n"
                 "/stop — Stop and clear the queue\n"
