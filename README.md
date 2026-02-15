@@ -49,14 +49,9 @@ In the `audio` folder of the bot, place your files there. The bot will now be ab
 
 ## Miscellaneous Information
 
-### Contributors
-* [obviouslyweb](https://github.com/obviouslyweb)
-
 ### Encounter a bug / have an idea / want to contribute?
 
-Please don't hesitate to add an issue if you encounter a bug or have an idea for enhancement.
-
-Contributors are welcome to add issues and suggest pull requests to improve the functionality of Woolwav! If you want something done, create an issue for it and connect a pull request to it. I'll take a look at it when I can. If you contribute, you'll be credited here!
+Please don't hesitate to add an issue if you encounter a bug or have an idea for enhancement. Contributors are also welcome to add issues and suggest pull requests to improve the functionality of Woolwav! If you want something done, create an issue for it and connect a pull request to it. I'll take a look at it when I can.
 
 ### Development environment
 
@@ -80,5 +75,7 @@ I found these websites useful in developing this software:
 *This project is provided “as is” without warranty of any kind. By using this code, you agree that you are solely responsible for compliance with Discord’s Terms of Service and all applicable laws. I accept no liability for misuse or damages.*
 
 *Woolwav Logo © obviouslyweb 2026. You are permitted to use the logo for usage on your own instance of the bot, if desired.*
+
+*If you are a fan of Justin Bieber, you will be prosecuted to the fullest extent of the law. Do not test me.*
 
 *This project makes use of several third-party libraries, each of which is subject to its own license. Key dependencies include [discord.py](https://pypi.org/project/discord.py/) for Discord bot functionality, [python-dotenv](https://pypi.org/project/python-dotenv/) for environment variable management, and [ffmpeg](https://ffmpeg.org/) for audio processing. Please consult the respective links for details on each library’s license terms and ensure compliance when using or modifying this project.*
