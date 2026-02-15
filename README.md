@@ -5,9 +5,10 @@
 Woolwav is an audio streaming bot created using Discord.py that allows users to upload their own audio tracks to listen to them in voice channels, with support for a variety of audio filetypes, playlist features, looping tracks, and (theoretically) support for an infinite amount of tracks to be played.
 
 ## Features
-- Play audio files from the bot's `audio` folder, with `.mp3`, `.wav`, `.ogg`, `.m4a`, and `.flac` supported. Add new files to the folder to make them available for playback without the need to restart.
+- Play audio files in a Discord Voice Channel, with `.mp3`, `.wav`, `.ogg`, `.m4a`, and `.flac` supported. Files can be added and played without the need to restart.
 - Queue audio files in order and loop tracks if desired. 
-- Pausing mid-playback, stopping, and skipping songs entirely.
+- Pausing mid-playback, stopping, and skipping songs.
+- View the current track queue and timestamp, and skip to different timestamps within the playing audio track with `/skipto`.
 - See a list of available files to play with `/audio`.
 - Optionally restrict commands to users with specified Discord roles through `.env`.
 - Logs important events to a file in the `logs` directory for debugging and monitoring.
@@ -40,12 +41,12 @@ Woolwav is an audio streaming bot created using Discord.py that allows users to 
 
 ## Adding audio tracks
 
-Find a compatible audio file (`.mp3`, `.wav`, `.ogg`, `.m4a`, or `.flac`) that you want to play. While not necessary, it's recommended to give it a short or easily memorable name, as users will have to repeat the filename in order to play the audio. **Make sure you're comfortable with the details in the filename, as these will be publicly visible to users interfacing with the bot!**
+Find a compatible audio file (`.mp3`, `.wav`, `.ogg`, `.m4a`, or `.flac`) that you want to play. While not necessary, it's recommended to give it a short or easily memorable name, as users will have to repeat the filename in order to play the audio. **Make sure you're comfortable with the filenames as well as subfolder names, as these will be publicly visible to users interfacing with the bot!**
 
 In the `audio` folder of the bot, place your files there. The bot will now be able to find and play audio from the folder. You can even add and remove tracks from there while the bot is still running, although removing a track while the bot is playing it may cause critical errors.
 
 > [!TIP]
-> You can also place additional subfolders in the `audio` folder. The bot will be able to play audio tracks from these. Use `/audio` to list the root folder, or `/audio` with the subfolder option (e.g. `my_music` or `my_music/jingles`) to browse inside a folder.
+> You can also place additional subfolders in the `audio` folder. The bot will be able to play audio tracks from these. Use `/audio` to list the root folder, or `/audio` with the subfolder option (e.g. `my_music` or `my_music/jingles`) to browse inside a folder. Should you queue a file whose name repeats across multiple subfolders and you do not specify the full path, the bot will ask which one to play.
 
 ## Miscellaneous Information
 
