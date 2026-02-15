@@ -665,7 +665,7 @@ class AudioCog(commands.Cog):
                 await interaction.response.send_message("No audio files or subfolders were found in this folder.")
                 return
 
-            page_size = 12
+            page_size = 15
             pages = [all_entries[i:i+page_size] for i in range(0, len(all_entries), page_size)]
             total_pages = len(pages)
             current_page = 0
