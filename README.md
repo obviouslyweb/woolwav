@@ -48,6 +48,10 @@ In the `audio` folder of the bot, place your files there. The bot will now be ab
 > [!TIP]
 > You can also place additional subfolders in the `audio` folder. The bot will be able to play audio tracks from these. Use `/audio` to list the root folder, or `/audio` with the subfolder option (e.g. `my_music` or `my_music/jingles`) to browse inside a folder. Should you queue a file whose name repeats across multiple subfolders and you do not specify the full path, the bot will ask which one to play.
 
+## Troubleshooting
+
+**The bot is rapidly joining & leaving the VC, or won't join at all!** Sometimes updates to Discord.py or other dependencies relied upon by the bot get updated to handle Discord updating their API. Run `pip install -r requirements.txt` to reinstall all the required dependencies with their newest versions, and try again. If the bot still doesn't work, please leave an issue and I'll take a look at it!
+
 ## Miscellaneous Information
 
 ### Encounter a bug / have an idea / want to contribute?
