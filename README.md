@@ -2,10 +2,11 @@
 
 # Woolwav - *Discord.py Audio Bot*
 
-Woolwav is an audio streaming bot created using Discord.py that allows users to upload their own audio tracks to listen to them in voice channels, with support for a variety of audio filetypes, playlist features, looping tracks, and (theoretically) support for an infinite amount of tracks to be played.
+Woolwav is an audio streaming bot created using Discord.py and ffmpeg that allows users to upload their own audio tracks to listen to them in voice channels, with support for a variety of audio filetypes, playlist features, looping tracks, and (theoretically) support for an infinite amount of tracks to be played.
 
 ## Features
-- Play audio files in a Discord Voice Channel, with `.mp3`, `.wav`, `.ogg`, `.m4a`, and `.flac` supported. Files can be added and played without the need to restart.
+- Play audio files in a Discord Voice Channel, with `.mp3`, `.wav`, `.ogg`, `.m4a`, and `.flac` supported.
+- Add and remove audio files without the need to restart the bot.
 - Queue audio files in order and loop tracks if desired. 
 - Pausing mid-playback, stopping, and skipping songs.
 - View the current track queue and timestamp, and skip to different timestamps within the playing audio track with `/skipto`.
