@@ -3,6 +3,7 @@
 import discord
 import os
 import time
+import json
 from discord import app_commands
 from discord.ext import commands
 from checks import check_allowed_roles, interaction_has_allowed_role
@@ -66,6 +67,7 @@ class CommandsCog(commands.Cog):
                 "/queue — Show now playing and queue\n"
                 "/loop — Toggle looping for the current track\n"
                 "/stop — Stop and clear the queue\n"
+                "/results (integer) — Edit the default number of returned results per page with /audio\n"
                 "/clearqueue — Clear the queue\n"
                 "/pause — Pause playback\n"
                 "/unpause — Resume playback"
@@ -74,6 +76,33 @@ class CommandsCog(commands.Cog):
         )
         embed.set_footer(text=f"Woolwav v{getattr(self.bot, 'version', '?')}")
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="results", description="Edit the default number of returned results per page with /audio.")
+    @app_commands.describe(number="Provide an integer for the number of returned results per page.")
+    async def results(self, interaction: discord.Interaction, number: int) -> None:
+        if not interaction_has_allowed_role(interaction):
+            await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
+            return
+        if number >= 5 and number < 101:
+            try:
+                with open("./settings.json", "r") as f:
+                    settings = json.load(f)
+                settings["results_default"] = number
+                with open("./settings.json", "w") as f:
+                    json.dump(settings, f, indent=4)
+                await interaction.response.send_message(
+                    f"Number of default results per page changed to {number}."
+                )
+            except Exception as e:
+                print(f"[WARN] Results default setting dump failed: {e}")
+                await interaction.response.send_message("Failed to save the setting; please try again later.", ephemeral=True)
+            except Exception as e:
+                print(f"[WARN] Results default setting dump failed: {e}")
+        else:
+            await interaction.response.send_message(
+                "You can't change the returned results to a number less than 5 or greater than 100!",
+                ephemeral=True,
+            )
 
     @app_commands.command(name="leave", description="Leave the current voice channel.")
     async def leave(self, interaction: discord.Interaction) -> None:

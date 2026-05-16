@@ -5,6 +5,7 @@ import os
 import asyncio
 import time
 import subprocess
+import json
 from discord import app_commands
 from discord.ext import commands
 from checks import interaction_has_allowed_role
@@ -625,7 +626,8 @@ class AudioCog(commands.Cog):
 
     @app_commands.command(name="audio", description="List available audio.")
     @app_commands.describe(subfolder="Optional subfolder path, e.g. 'wip', 'soundtrack', 'sfx', etc.")
-    async def audio(self, interaction: discord.Interaction, subfolder: str = None):
+    @app_commands.describe(results="Optional; customize the number of returned results per page.")
+    async def audio(self, interaction: discord.Interaction, subfolder: str = None, results: int = None):
         if not interaction_has_allowed_role(interaction):
             await interaction.response.send_message("You don't have permission to use this command.", ephemeral=True)
             return
@@ -665,7 +667,24 @@ class AudioCog(commands.Cog):
                 await interaction.response.send_message("No audio files or subfolders were found in this folder.")
                 return
 
-            page_size = 15
+            # If no provided results, load default results per page
+            if results is None:
+                try:
+                    with open("./settings.json", "r") as f:
+                        settings = json.load(f)
+                    page_size = settings.get("results_default", 12)
+                except Exception as e:
+                    print(f"[WARN] Failed to load settings.json during audio command. Defaulting to 12: {e}")
+                    page_size = 12
+            else:
+                # User provided specific number, round if needed and set
+                if results >= 5 and results < 101:
+                    page_size = results
+                elif results < 5:
+                    page_size = 5
+                else:
+                    page_size = 100
+
             pages = [all_entries[i:i+page_size] for i in range(0, len(all_entries), page_size)]
             total_pages = len(pages)
             current_page = 0
