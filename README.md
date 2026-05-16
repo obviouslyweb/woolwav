@@ -1,6 +1,6 @@
 ![Woolwav logo](icons/woolwav_full.png)
 
-# Woolwav - *Discord.py Audio Bot*
+# Woolwav - *Discord Audio Bot powered by Discord.py & ffmpeg*
 
 Woolwav is an audio streaming bot created using Discord.py and ffmpeg that allows users to upload their own audio tracks to listen to them in voice channels, with support for a variety of audio filetypes, playlist features, looping tracks, and (theoretically) support for an infinite amount of tracks to be played.
 
