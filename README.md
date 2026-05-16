@@ -52,7 +52,7 @@ In the `audio` folder of the bot, place your files there. The bot will now be ab
 
 ## Troubleshooting
 
-**The bot is rapidly joining & leaving the VC, or won't join at all:** Sometimes updates to Discord.py or other dependencies relied upon by the bot get updated to handle Discord updating their API. Run `pip install -r requirements.txt` to reinstall all the required dependencies with their newest versions, and try again. If the bot still doesn't work, please leave an issue and I'll take a look at it!
+**The bot is rapidly joining & leaving the VC, or won't join at all:** Sometimes updates to Discord.py or other dependencies relied upon by the bot get updated to handle Discord updating their API. Run `pip install -r requirements.txt` in the folder of the bot using Command Prompt or a similar terminal to reinstall all the required dependencies with their newest versions, and try again. If the bot still doesn't work, please leave an issue and I'll take a look at it!
 
 ## Miscellaneous Information
 
