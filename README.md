@@ -12,7 +12,7 @@ Woolwav is an audio streaming bot created using Discord.py that allows users to 
 - See a list of available files to play with `/audio`.
 - Optionally restrict commands to users with specified Discord roles through `.env`.
 - Logs important events to a file in the `logs` directory for debugging and monitoring.
-- Self-hostable on your own Discord bot account, allowing for the ability to add or edit features as you see fit.
+- Self-hostable on your own Discord bot account, letting you change it however you'd like
 
 ## Setting up Woolwav
 
@@ -65,7 +65,7 @@ To recreate the development environment, you need the following software and/or 
 * [Visual Studio Code](https://code.visualstudio.com/)
 * [Python 3.11.5](https://www.python.org/downloads/)
 * [discord.py 2.3.2](https://discordpy.readthedocs.io/en/stable/)
-* [ffmpeg 7.7.1-full_build-www.gyan.dev](https://ffmpeg.org/)
+* [ffmpeg 7.7.1](https://ffmpeg.org/)
 
 ### Resources used in development
 
@@ -79,7 +79,7 @@ I found these websites useful in developing this software:
 
 *This project is provided “as is” without warranty of any kind. By using this code, you agree that you are solely responsible for compliance with Discord’s Terms of Service and all applicable laws. I accept no liability for misuse or damages.*
 
-*Woolwav Logo © obviouslyweb 2026. You are permitted to use the logo for usage on your own instance of the bot, if desired.*
+*Woolwav name and logo © obviouslyweb 2026. You are permitted to use the logo for usage on your own instance of the bot, if desired; all other uses, both commercial and personal, are prohibited barring explicit written permission from obviouslyweb.*
 
 *If you are a fan of Justin Bieber, you will be prosecuted to the fullest extent of the law. Do not test me.*
 
