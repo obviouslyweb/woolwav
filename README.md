@@ -23,7 +23,9 @@ Woolwav is an audio streaming bot created using Discord.py that allows users to 
 1. Download [ffmpeg](https://ffmpeg.org/download.html) and add it to your PATH. You can download pre-compiled versions from other users or compile it yourself (although doing so is a complicated process).
 2. Download and install [Python](https://www.python.org/downloads/), as well as add it to PATH. Versions 3.9 to 3.12 are confirmed to work well, but 3.13 and above may have slight compatibility issues with Discord.py, so you may encounter issues with that route.
 3. Download the contents of this repository (`woolwav`) to your computer and store in a safe location (optimally somewhere quick and easy to access).
-4. Log into the [Discord Developer Portal](https://discord.com/developers/applications) using your Discord account. Create a new application and give it a name. On the *Bot* page, toggle "Server Members Intent" and "Message Content Intent"; these are required for the bot to be able to properly process user information and messages to read messages.
+4. Log into the [Discord Developer Portal](https://discord.com/developers/applications) using your Discord account. Create a new application and give it a name as well as an icon if you'd like. On the *Bot* page, toggle "Server Members Intent" and "Message Content Intent"; these are required for the bot to be able to properly process user information and messages to read messages.
+> [!NOTE]
+> If you choose to use the Woolwav name, logo, or icon for your bot, your bot's description on the Discord Developer Portal **must** state that it is not owned or maintained by TheWebCon / obviouslyweb. I recommend giving it a custom name and icon of your choosing, but it's entirely up to you. See the **Legal Disclaimers** section below for more details.
 5. In the main `woolwav` folder, create a new file called `.env`. This will contain important details that our bot needs to run. Type `DISCORD_TOKEN=` on one line. Back in the Discord Developer Portal *Bot* page, click "Reset Token", then paste your bot token after the `=`. This is necessary for the bot to be able to interface with Discord, so ensure that it's properly pasted. Save the file when done.
 > [!WARNING]
 > **Do NOT share your bot token or .env file with anyone!** If it's stolen, others can log in as this bot and do whatever they want with it under your Developer account.
@@ -79,7 +81,7 @@ I found these websites useful in developing this software:
 
 *This project is licensed under the MIT License. See the LICENSE file for details. By using this code, you agree that you are solely responsible for compliance with Discord's Terms of Service and all applicable laws. **I accept no liability for misuse or damages.***
 
-*Woolwav name and logo © obviouslyweb 2026. You are permitted to use the logo for usage on your own instance of the bot if desired; all other uses, both commercial and personal, are prohibited barring explicit written permission from obviouslyweb / TheWebCon.*
+*Woolwav name, logo, and icon © TheWebCon / obviouslyweb 2026. **You may use the name and logo for your own instance of the bot, provided that the bot's Discord description clearly states that it is not owned or maintained by TheWebCon / obviouslyweb.** All other uses, commercial or personal, remain prohibited without explicit written permission.*
 
 *This project makes use of several third-party libraries, each of which is subject to its own license. Key dependencies include [discord.py](https://pypi.org/project/discord.py/) for Discord bot functionality, [python-dotenv](https://pypi.org/project/python-dotenv/) for environment variable management, and [ffmpeg](https://ffmpeg.org/) for audio processing. Please consult the respective links for details on each library’s license terms and ensure compliance when using or modifying this project.*
 
