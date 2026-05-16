@@ -1,4 +1,4 @@
-![Woolwav logo](icons/woolwav-full.png)
+![Woolwav logo](icons/woolwav_full.png)
 
 # Woolwav - *Discord.py Audio Bot*
 
